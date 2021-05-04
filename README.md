@@ -1,6 +1,6 @@
 [![Downloads](https://static.pepy.tech/personalized-badge/find-primes?period=total&units=international_system&left_color=lightgrey&right_color=yellowgreen&left_text=Downloads)](https://pepy.tech/project/find-primes)
 
-**Find Primes is a library to find all kinds of primes.**
+Find Primes is a library to find all kinds of primes.
 
 **Install**
 ```shell
