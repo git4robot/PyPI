@@ -1,7 +1,7 @@
 Metadata-Version: 2.1
 Name: find-primes
-Version: 2.1.0
-Summary: A module for finding primes
+Version: 2.1.1
+Summary: A module for finding primes and finding factors of big numbers.
 Home-page: https://github.com/git4robot/pypi_find_primes
 Author: JamesJ
 Author-email: GGJamesQQ@yeah.net
@@ -16,12 +16,19 @@ License-File: LICENSE
 
 [![Downloads](https://static.pepy.tech/personalized-badge/find-primes?period=total&units=international_system&left_color=lightgrey&right_color=yellowgreen&left_text=Downloads)](https://pepy.tech/project/find-primes)
 
-Find Primes is a library to find all kinds of primes.
+Find Primes is a library to find all kinds of primes and factors of big numbers.
 
 **Install**
+
+Stable Version:
 ```shell
-pip install --pre --upgrade find-primes
+pip install -U find-primes
 ```
+Beta Version:
+```shell
+pip install --pre -U find-primes
+```
+
 **[Twin Primes](https://en.wikipedia.org/wiki/Twin_prime)**
 
 A twin prime is a prime number that is either 2 less or 2 more than another prime number.
@@ -274,5 +281,45 @@ Example: Factor a big number.
 ```python
 from find_primes import factor_mpqs
 print(factor_mpqs(2776889953055853600532696901))
+```
+
+**[SIQS Method](https://www.rieselprime.de/ziki/Self-initializing_quadratic_sieve)**
+
+The Self-initializing Quadratic Sieve (SIQS) method is a factorization method based on the Multiple Polynomial Quadratic Sieve (MPQS) method.
+
+Example: Factor a big number.
+```python
+from find_primes import factor_siqs
+print(factor_siqs(3458280484189))
+```
+
+**[Lenstra Elliptic-curve Method](https://en.wikipedia.org/wiki/Lenstra_elliptic-curve_factorization)**
+
+The Lenstra Elliptic-curve method is a factorization method.
+
+Example: Factor a big number.
+```python
+from find_primes import factor_lenstra
+print(factor_lenstra(2854159729781))
+```
+
+**[Pollard p - 1 Method](https://en.wikipedia.org/wiki/Pollard%27s_p_%E2%88%92_1_algorithm)**
+
+The Pollard p - 1 method is a factorization method.
+
+Example: Factor a big number.
+```python
+from find_primes import factor_pollardpm1
+print(factor_pollardpm1(2854159729781))
+```
+
+**[Williams p + 1 Method](https://en.wikipedia.org/wiki/Williams%27s_p_%2B_1_algorithm)**
+
+The Williams p + 1 Method is a factorization method.
+
+Example: Factor a big number.
+```python
+from find_primes import factor_williamspp1
+print(factor_williamspp1(2854159729781))
 ```
 

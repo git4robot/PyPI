@@ -3180,7 +3180,7 @@ def test():
         print(f'Time: {round(end_tm - start_tm, 12)} seconds.\n')
 
         end_all = time()
-        print(f'Factor Test Time: {round(end_all - start_all, 12)} seconds.\n')
+        print(f'Factor Test Time: {round(end_all - start_all, 12)} seconds.')
 
 def add_args():
     '''
