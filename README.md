@@ -13,6 +13,12 @@ Beta Version:
 pip install --pre -U find-primes
 ```
 
+**The CLI Tool**
+Usage:
+```shell
+find_primes.py --help
+```
+
 **[Twin Primes](https://en.wikipedia.org/wiki/Twin_prime)**
 
 A twin prime is a prime number that is either 2 less or 2 more than another prime number.
