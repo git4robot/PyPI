@@ -14,6 +14,7 @@ pip install --pre -U find-primes
 ```
 
 **The CLI Tool**
+
 Usage:
 ```shell
 find_primes.py --help

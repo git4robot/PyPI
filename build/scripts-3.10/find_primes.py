@@ -74,6 +74,9 @@ def all_primes(n, output = 'array'):
     else:
         return [x for x in range(2, n + 1) if sieve[x]]
 
+class FactorError(Exception):
+    pass
+
 def factor_siqs(n):
     '''
     Return a list that has all factors of n.
@@ -2304,7 +2307,7 @@ def factor_mpqs(n):
             if 1 < divisor < N:
                 return divisor
 
-    def mpqs(n):
+    def mpqs(n, retry = 1, max_retries = 3):
         num = n
         ans = []
         if is_prime(n):
@@ -2333,8 +2336,15 @@ def factor_mpqs(n):
                 ans = [x for x in _factor(num)[1]]
                 break
         
-        ans.sort()
-        return ans
+        if reduce(mul, ans) == n:
+            ans.sort()
+            return ans
+        
+        print(f'Factor Error. The multiplication of {ans} is not {n}. Retry {retry}.')
+        if retry == max_retries:
+            raise FactorError(f'Factor Error. The multiplication of {ans} is not {n}.')
+
+        return mpqs(n, retry + 1)
     
     return mpqs(n)
     
@@ -2620,18 +2630,20 @@ def add_args():
     parser.add_argument('--all_primes', metavar = 'all_primes', const = all_primes, nargs = '?', help = all_primes.__doc__)
     parser.add_argument('--factor', metavar = 'factor', const = factor_mpqs, nargs = '?', help = factor_mpqs.__doc__)
     args = parser.parse_args()
-    print_help = False
+    print_help_is_prime = False
+    print_help_all_primes = False
+    print_help_factor = False
     if args.is_prime:
         print(is_prime(args.n))
     
     else:
-        print_help = True
+        print_help_is_prime = True
     
     if args.all_primes:
         print(all_primes(args.n))
     
     else:
-        print_help = print_help and True
+        print_help_all_primes = True
 
     if args.factor:
         if args.method == 'siqs':
@@ -2650,9 +2662,9 @@ def add_args():
             print(factor_williamspp1(args.n))
     
     else:
-        print_help = print_help and True
+        print_help_factor = True
     
-    if print_help:
+    if print_help_is_prime and print_help_all_primes and print_help_factor:
         print('''usage: find_primes.py [-h] [-n num] [-method method] [--is_prime [is_prime]] [--all_primes [all_primes]]
                       [--factor [factor]]
 

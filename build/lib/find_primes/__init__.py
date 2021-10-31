@@ -90,6 +90,9 @@ def all_primes(n, output = 'array'):
     else:
         return [x for x in range(2, n + 1) if sieve[x]]
 
+class FactorError(Exception):
+    pass
+
 def find_twins(n):
     '''
     Return a dict that has all twin primes below n.
@@ -2757,7 +2760,7 @@ def factor_mpqs(n):
             if 1 < divisor < N:
                 return divisor
 
-    def mpqs(n):
+    def mpqs(n, retry = 1, max_retries = 3):
         num = n
         ans = []
         if is_prime(n):
@@ -2786,11 +2789,18 @@ def factor_mpqs(n):
                 ans = [x for x in _factor(num)[1]]
                 break
         
-        ans.sort()
-        return ans
+        if reduce(mul, ans) == n:
+            ans.sort()
+            return ans
+        
+        print(f'Factor Error. The multiplication of {ans} is not {n}. Retry {retry}.')
+        if retry == max_retries:
+            raise FactorError(f'Factor Error. The multiplication of {ans} is not {n}.')
+
+        return mpqs(n, retry + 1)
     
     return mpqs(n)
-    
+
 def factor_lenstra(n):
     '''
     Return a list that has all factors of n.
