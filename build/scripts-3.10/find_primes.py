@@ -28,6 +28,21 @@ def _check_num(n):
     if n <= 0:
         raise ValueError('The number of argument n should be greater than 0, got {n}'.format(**locals()))
 
+def _check_factors(ans, n, retry = 1, max_retries = 3):
+    '''
+    Internel function to check the output.
+    '''
+    if reduce(mul, ans) == n:
+        return 0
+    
+    if retry == max_retries + 1:
+        print(f'Factor Error. The multiplication of {ans} is not {n}.')
+        raise FactorError(f'Factor Error. The multiplication of {ans} is not {n}.')
+    
+    print(f'Factor Error. The multiplication of {ans} is not {n}. Retry {retry}.')
+
+    return retry + 1
+
 def is_prime(n):
     '''
     If n is prime, return True.
@@ -2300,14 +2315,14 @@ def factor_mpqs(n):
 
             X = floorsqrt(X) % M.number
             if X != Y:
-                differences.append(X-Y)
+                differences.append(X - Y)
 
         for diff in differences:
             divisor = gcd(diff, N)
             if 1 < divisor < N:
                 return divisor
 
-    def mpqs(n, retry = 1, max_retries = 3):
+    def mpqs(n, retry = 1, min_ = 20):
         num = n
         ans = []
         if is_prime(n):
@@ -2317,7 +2332,7 @@ def factor_mpqs(n):
         while True:
             r = num
             try:
-                if len(str(r)) > 25:
+                if len(str(r)) >= min_:
                     d = mpqsfind(num)
                     ans.append(d)
                     r = num // d
@@ -2335,19 +2350,16 @@ def factor_mpqs(n):
             except TypeError:
                 ans = [x for x in _factor(num)[1]]
                 break
-        
-        if reduce(mul, ans) == n:
+
+        checked = _check_factors(ans, n, retry)
+        if checked == 0:
             ans.sort()
             return ans
         
-        print(f'Factor Error. The multiplication of {ans} is not {n}. Retry {retry}.')
-        if retry == max_retries:
-            raise FactorError(f'Factor Error. The multiplication of {ans} is not {n}.')
-
-        return mpqs(n, retry + 1)
+        return mpqs(n, checked)
     
     return mpqs(n)
-    
+
 def factor_lenstra(n):
     '''
     Return a list that has all factors of n.
@@ -2388,6 +2400,7 @@ def factor_lenstra(n):
     def add_points(P1, P2, curve):
         if P1.z == 0:
             return P2
+
         if P2.z == 0:
             return P1
         
@@ -2440,7 +2453,7 @@ def factor_lenstra(n):
             
         return P2
 
-    def factor(n, mode = 1, tries = 10):
+    def lenstra(n, mode = 1, tries = 10):
         factors = []
         for i in (2, 3):
             while n % i == 0:
@@ -2521,9 +2534,9 @@ def factor_lenstra(n):
         factors.sort()
         return factors
     
-    return factor(n)
+    return lenstra(n)
 
-def factor_pollardpm1(n):
+def factor_pollardpm1(n, retry = 1):
     '''
     Return a list that has all factors of n.
     '''
@@ -2558,10 +2571,14 @@ def factor_pollardpm1(n):
         else:
             num = r
     
-    ans.sort()
-    return ans
+    checked = _check_factors(ans, n, retry)
+    if checked == 0:
+        ans.sort()
+        return ans
+        
+    return factor_pollardpm1(n, checked)
 
-def factor_williamspp1(n):
+def factor_williamspp1(n, retry = 1):
     '''
     Return a list that has all factors of n.
     '''
@@ -2615,8 +2632,12 @@ def factor_williamspp1(n):
         else:
             num = r
     
-    ans.sort()
-    return ans
+    checked = _check_factors(ans, n, retry)
+    if checked == 0:
+        ans.sort()
+        return ans
+        
+    return factor_williamspp1(n, checked)
 
 def add_args():
     '''

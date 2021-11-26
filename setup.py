@@ -7,7 +7,7 @@ with open(path.join(this_directory, 'README.md'), encoding = 'utf-8') as f:
 
 setup(
     name = 'find_primes',
-    version = '2.1.3',
+    version = '2.1.4',
     author = 'JamesJ',
     author_email = 'GGJamesQQ@yeah.net',
     description = 'A module for finding primes and finding factors of big numbers.',

@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: find-primes
-Version: 2.1.3
+Version: 2.1.4
 Summary: A module for finding primes and finding factors of big numbers.
 Home-page: https://github.com/git4robot/pypi_find_primes
 Author: JamesJ

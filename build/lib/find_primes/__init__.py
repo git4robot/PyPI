@@ -9,7 +9,6 @@ from random import randint, randrange
 from functools import reduce
 from operator import mul
 from sys import version_info
-from rsa import newkeys
 from argparse import ArgumentParser
 
 NUMPY_ENABLED = True
@@ -20,10 +19,14 @@ try:
 except ImportError:
     NUMPY_ENABLED = False
 
-print()
+PRIME_TEST = False
+FACTOR_TEST = False
+try:
+    from rsa import newkeys, __version__
+    print('Detected rsa version {__version__}'.format(**locals()))
 
-PRIME_TEST = True
-FACTOR_TEST = True
+except ImportError:
+    FACTOR_TEST = False
 
 LEFT = 'left'
 RIGHT = 'right'
@@ -43,6 +46,21 @@ def _check_num(n):
 
     if n <= 0:
         raise ValueError('The number of argument n should be greater than 0, got {n}'.format(**locals()))
+
+def _check_factors(ans, n, retry = 1, max_retries = 3):
+    '''
+    Internel function to check the output.
+    '''
+    if reduce(mul, ans) == n:
+        return 0
+    
+    if retry == max_retries + 1:
+        print(f'Factor Error. The multiplication of {ans} is not {n}.')
+        raise FactorError(f'Factor Error. The multiplication of {ans} is not {n}.')
+    
+    print(f'Factor Error. The multiplication of {ans} is not {n}. Retry {retry}.')
+
+    return retry + 1
 
 def is_prime(n):
     '''
@@ -2753,14 +2771,14 @@ def factor_mpqs(n):
 
             X = floorsqrt(X) % M.number
             if X != Y:
-                differences.append(X-Y)
+                differences.append(X - Y)
 
         for diff in differences:
             divisor = gcd(diff, N)
             if 1 < divisor < N:
                 return divisor
 
-    def mpqs(n, retry = 1, max_retries = 3):
+    def mpqs(n, retry = 1, min_ = 20):
         num = n
         ans = []
         if is_prime(n):
@@ -2770,7 +2788,7 @@ def factor_mpqs(n):
         while True:
             r = num
             try:
-                if len(str(r)) > 25:
+                if len(str(r)) >= min_:
                     d = mpqsfind(num)
                     ans.append(d)
                     r = num // d
@@ -2788,16 +2806,13 @@ def factor_mpqs(n):
             except TypeError:
                 ans = [x for x in _factor(num)[1]]
                 break
-        
-        if reduce(mul, ans) == n:
+
+        checked = _check_factors(ans, n, retry)
+        if checked == 0:
             ans.sort()
             return ans
         
-        print(f'Factor Error. The multiplication of {ans} is not {n}. Retry {retry}.')
-        if retry == max_retries:
-            raise FactorError(f'Factor Error. The multiplication of {ans} is not {n}.')
-
-        return mpqs(n, retry + 1)
+        return mpqs(n, checked)
     
     return mpqs(n)
 
@@ -2841,6 +2856,7 @@ def factor_lenstra(n):
     def add_points(P1, P2, curve):
         if P1.z == 0:
             return P2
+
         if P2.z == 0:
             return P1
         
@@ -2893,7 +2909,7 @@ def factor_lenstra(n):
             
         return P2
 
-    def factor(n, mode = 1, tries = 10):
+    def lenstra(n, mode = 1, tries = 10):
         factors = []
         for i in (2, 3):
             while n % i == 0:
@@ -2974,9 +2990,9 @@ def factor_lenstra(n):
         factors.sort()
         return factors
     
-    return factor(n)
+    return lenstra(n)
 
-def factor_pollardpm1(n):
+def factor_pollardpm1(n, retry = 1):
     '''
     Return a list that has all factors of n.
     '''
@@ -3011,10 +3027,14 @@ def factor_pollardpm1(n):
         else:
             num = r
     
-    ans.sort()
-    return ans
+    checked = _check_factors(ans, n, retry)
+    if checked == 0:
+        ans.sort()
+        return ans
+        
+    return factor_pollardpm1(n, checked)
 
-def factor_williamspp1(n):
+def factor_williamspp1(n, retry = 1):
     '''
     Return a list that has all factors of n.
     '''
@@ -3068,8 +3088,12 @@ def factor_williamspp1(n):
         else:
             num = r
     
-    ans.sort()
-    return ans
+    checked = _check_factors(ans, n, retry)
+    if checked == 0:
+        ans.sort()
+        return ans
+        
+    return factor_williamspp1(n, checked)
 
 def get_bits(n):
     return newkeys(n)[0].n
@@ -3107,7 +3131,8 @@ def test():
         print(f'Leyland Primes of the second kind: {find_leylands_second_kind(58050)}\n')
         print(f'Woodall Primes: {find_woodalls(400)}\n')
         end_tm = time()
-        print(f'Prime Test Time: {round(end_tm - start_tm, 12)} seconds.\n')
+        s = '\n' if FACTOR_TEST else ''
+        print(f'Prime Test Time: {round(end_tm - start_tm, 12)} seconds.' + s)
     
     if FACTOR_TEST:
         start_all = time()
@@ -3183,7 +3208,7 @@ def test():
         key_length = 92
         key_large = get_bits(key_length)
 
-        print('Factor of A Very Large Number Test: (MPQS Method)\n')
+        print(f'Factor of an RSA key of {key_length} bits: (MPQS Method)\n')
         start_tm = time()
         print(f'Factor of {key_large}: {factor_mpqs(key_large)}')
         end_tm = time()
@@ -3192,46 +3217,11 @@ def test():
         end_all = time()
         print(f'Factor Test Time: {round(end_all - start_all, 12)} seconds.')
 
-def add_args():
-    '''
-    Add args.
-    '''
-    global args
-    parser = ArgumentParser(description = 'A module to find all kinds of primes.')
-    parser.add_argument('-n', metavar = 'num', type = int, help = 'The number')
-    parser.add_argument('-method', metavar = 'method', type = str, help = 'The method of the factor function. (siqs, mpqs, lenstra, pollardpm1, williamspp1)')
-    parser.add_argument('--is_prime', metavar = 'is_prime', const = is_prime, nargs = '?', help = is_prime.__doc__)
-    parser.add_argument('--all_primes', metavar = 'all_primes', const = all_primes, nargs = '?', help = all_primes.__doc__)
-    parser.add_argument('--factor', metavar = 'factor', const = factor_mpqs, nargs = '?', help = factor_mpqs.__doc__)
-    args = parser.parse_args()
-    if args.is_prime:
-        print(is_prime(args.n))
-    
-    if args.all_primes:
-        print(all_primes(args.n))
-
-    if args.factor:
-        if args.method == 'siqs':
-            print(factor_siqs(args.n))
-
-        elif args.method == 'mpqs':
-            print(factor_mpqs(args.n))
-
-        elif args.method == 'lenstra':
-            print(factor_lenstra(args.n))
-        
-        elif args.method == 'pollardpm1':
-            print(factor_pollardpm1(args.n))
-        
-        elif args.method == 'williamspp1':
-            print(factor_williamspp1(args.n))
-
-add_args()
-
 if __name__ == '__main__':
     if version_info[0] == 3 and version_info[1] >= 6:
         if list(reversed(list(vars(args).values()))) == list(vars(args).values()):
             test()
+            print(factor_williamspp1(137817))
     
     else:
         print('The test method can\'t run in your python version.')
