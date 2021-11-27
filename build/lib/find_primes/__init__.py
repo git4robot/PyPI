@@ -19,8 +19,8 @@ try:
 except ImportError:
     NUMPY_ENABLED = False
 
-PRIME_TEST = False
-FACTOR_TEST = False
+PRIME_TEST = True
+FACTOR_TEST = True
 try:
     from rsa import newkeys, __version__
     print('Detected rsa version {__version__}'.format(**locals()))
@@ -2909,7 +2909,7 @@ def factor_lenstra(n):
             
         return P2
 
-    def lenstra(n, mode = 1, tries = 10):
+    def factor(n, mode = 1, tries = 10):
         factors = []
         for i in (2, 3):
             while n % i == 0:
@@ -2990,7 +2990,7 @@ def factor_lenstra(n):
         factors.sort()
         return factors
     
-    return lenstra(n)
+    return factor(n)
 
 def factor_pollardpm1(n, retry = 1):
     '''
@@ -3219,9 +3219,7 @@ def test():
 
 if __name__ == '__main__':
     if version_info[0] == 3 and version_info[1] >= 6:
-        if list(reversed(list(vars(args).values()))) == list(vars(args).values()):
-            test()
-            print(factor_williamspp1(137817))
+        test()
     
     else:
         print('The test method can\'t run in your python version.')
