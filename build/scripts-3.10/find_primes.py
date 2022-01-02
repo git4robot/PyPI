@@ -16,7 +16,10 @@ try:
     print('Detected numpy version {__version__}'.format(**locals()))
 
 except ImportError:
+    print('Numpy is not found! Finding primes will be slower!')
     NUMPY_ENABLED = False
+
+print()
 
 def _check_num(n):
     '''
@@ -36,10 +39,10 @@ def _check_factors(ans, n, retry = 1, max_retries = 3):
         return 0
     
     if retry == max_retries + 1:
-        print(f'Factor Error. The multiplication of {ans} is not {n}.')
-        raise FactorError(f'Factor Error. The multiplication of {ans} is not {n}.')
+        print('Factor Error. The multiplication of {ans} is not {n}.'.format(**locals()))
+        raise FactorError('Factor Error. The multiplication of {ans} is not {n}.'.format(**locals()))
     
-    print(f'Factor Error. The multiplication of {ans} is not {n}. Retry {retry}.')
+    print('Factor Error. The multiplication of {ans} is not {n}. Retry {retry}.'.format(**locals()))
 
     return retry + 1
 
@@ -2453,7 +2456,7 @@ def factor_lenstra(n):
             
         return P2
 
-    def lenstra(n, mode = 1, tries = 10):
+    def factor(n, mode = 1, tries = 10, retry = 1):
         factors = []
         for i in (2, 3):
             while n % i == 0:
@@ -2485,10 +2488,7 @@ def factor_lenstra(n):
             i = 1
             while True:
                 i += 1
-                if mode == 0:
-                    P2 = add_points(P, P2, curve)
-
-                elif mode == 1:
+                if mode == 1:
                     P2 = multiply_point(P2, i, curve)
 
                 elif mode == 2:
@@ -2531,10 +2531,14 @@ def factor_lenstra(n):
                     return factors
         
         factors.append(n)
-        factors.sort()
-        return factors
+        checked = _check_factors(factors, n, retry)
+        if checked == 0:
+            factors.sort()
+            return factors
+            
+        return factor(n, retry = checked)
     
-    return lenstra(n)
+    return factor(n)
 
 def factor_pollardpm1(n, retry = 1):
     '''

@@ -1,6 +1,6 @@
 '''
 A module to finds all kinds of primes.
-Python version: 3.6+ (If runs test)
+Python version: 3.6+
 '''
 
 from time import time
@@ -8,7 +8,7 @@ from math import log, factorial, sqrt, log2, ceil, floor, gcd
 from random import randint, randrange
 from functools import reduce
 from operator import mul
-from sys import version_info
+from sys import version, version_info
 from argparse import ArgumentParser
 
 NUMPY_ENABLED = True
@@ -17,6 +17,7 @@ try:
     print('Detected numpy version {__version__}'.format(**locals()))
 
 except ImportError:
+    print('Numpy is not found! Finding primes will be slower!')
     NUMPY_ENABLED = False
 
 PRIME_TEST = True
@@ -26,7 +27,10 @@ try:
     print('Detected rsa version {__version__}'.format(**locals()))
 
 except ImportError:
+    print('Rsa is not found! Factor Test will be disabled!')
     FACTOR_TEST = False
+
+print()
 
 LEFT = 'left'
 RIGHT = 'right'
@@ -36,6 +40,8 @@ SQUARE = 'square'
 PENTAGON = 'pentagon'
 HEXAGON = 'hexagon'
 HEPTAGON = 'heptagon'
+
+CAN_RUN_TEST = version_info[0] == 3 and version_info[1] >= 6
 
 def _check_num(n):
     '''
@@ -55,10 +61,10 @@ def _check_factors(ans, n, retry = 1, max_retries = 3):
         return 0
     
     if retry == max_retries + 1:
-        print(f'Factor Error. The multiplication of {ans} is not {n}.')
-        raise FactorError(f'Factor Error. The multiplication of {ans} is not {n}.')
+        print('Factor Error. The multiplication of {ans} is not {n}.'.format(**locals()))
+        raise FactorError('Factor Error. The multiplication of {ans} is not {n}.'.format(**locals()))
     
-    print(f'Factor Error. The multiplication of {ans} is not {n}. Retry {retry}.')
+    print('Factor Error. The multiplication of {ans} is not {n}. Retry {retry}.'.format(**locals()))
 
     return retry + 1
 
@@ -150,7 +156,7 @@ def find_palindromes_base_2(n):
     base2_palin_primes = []
     for ix, xp in enumerate(primes):
         palin_num = xp[::-1]
-        result = eval(f'0b{palin_num}')
+        result = eval('0b{palin_num}'.format(**locals()))
         if is_prime(result) and palin_num == xp:
             base2_palin_primes.append(result)
 
@@ -181,12 +187,12 @@ def find_square_palindromes(n):
     '''
     _check_num(n)
     palin_primes = find_palindromes(n)
-    square_palin_prime = {}
+    square_palin_primes = {}
     for x in palin_primes:
         if str(x ** 2)[::-1] == str(x ** 2):
-            square_palin_prime[x] = x ** 2
+            square_palin_primes[x] = x ** 2
 
-    return square_palin_prime
+    return square_palin_primes
 
 def find_arithmetic_prime_progressions(n):
     '''
@@ -2909,7 +2915,7 @@ def factor_lenstra(n):
             
         return P2
 
-    def factor(n, mode = 1, tries = 10):
+    def factor(n, mode = 1, tries = 10, retry = 1):
         factors = []
         for i in (2, 3):
             while n % i == 0:
@@ -2941,10 +2947,7 @@ def factor_lenstra(n):
             i = 1
             while True:
                 i += 1
-                if mode == 0:
-                    P2 = add_points(P, P2, curve)
-
-                elif mode == 1:
+                if mode == 1:
                     P2 = multiply_point(P2, i, curve)
 
                 elif mode == 2:
@@ -2987,8 +2990,12 @@ def factor_lenstra(n):
                     return factors
         
         factors.append(n)
-        factors.sort()
-        return factors
+        checked = _check_factors(factors, n, retry)
+        if checked == 0:
+            factors.sort()
+            return factors
+            
+        return factor(n, retry = checked)
     
     return factor(n)
 
@@ -3218,8 +3225,8 @@ def test():
         print(f'Factor Test Time: {round(end_all - start_all, 12)} seconds.')
 
 if __name__ == '__main__':
-    if version_info[0] == 3 and version_info[1] >= 6:
+    if CAN_RUN_TEST:
         test()
     
     else:
-        print('The test method can\'t run in your python version.')
+        print('The test method can\'t run in your python version ' + version.split(' (')[0] + '.')
