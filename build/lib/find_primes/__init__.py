@@ -11,26 +11,38 @@ from operator import mul
 from sys import version, version_info
 from argparse import ArgumentParser
 
+DEBUG = False
+VERBOSE = False
+
 NUMPY_ENABLED = True
 try:
     from numpy import ones, nonzero, __version__
-    print('Detected numpy version {__version__}'.format(**locals()))
+    if VERBOSE: print('Detected numpy version {__version__}'.format(**locals()))
 
 except ImportError:
     print('Numpy is not found! Finding primes will be slower!')
     NUMPY_ENABLED = False
 
-PRIME_TEST = True
-FACTOR_TEST = True
+MPMATH_ENABLED = True
+try:
+    from mpmath import cyclotomic, __version__
+    if VERBOSE: print('Detected mpmath version {__version__}'.format(**locals()))
+
+except ImportError:
+    print('Mpmath is not found! You can\'t find several kinds of primes!')
+    MPMATH_ENABLED = False
+
+PRIME_TEST = FACTOR_TEST = not DEBUG
+
 try:
     from rsa import newkeys, __version__
-    print('Detected rsa version {__version__}'.format(**locals()))
+    if VERBOSE: print('Detected rsa version {__version__}'.format(**locals()))
 
 except ImportError:
     print('Rsa is not found! Factor Test will be disabled!')
     FACTOR_TEST = False
 
-print()
+if VERBOSE: print()
 
 LEFT = 'left'
 RIGHT = 'right'
@@ -88,9 +100,6 @@ def is_prime(n):
 def all_primes(n, output = 'array'):
     '''
     Return a prime list below n.
-
-    Arguments:
-    output ----- 'array' or 'list' ----- The output type of the function.
     '''
     _check_num(n)
     if NUMPY_ENABLED:
@@ -113,6 +122,56 @@ def all_primes(n, output = 'array'):
 
     else:
         return [x for x in range(2, n + 1) if sieve[x]]
+
+def get_repetend_length(denominator):
+    '''
+    Return the length of the repetend of n / denominator.
+    '''
+    length = 1
+    if is_prime(denominator):
+        while True:
+            if (10 ** length - 1) % denominator == 0:
+                break
+
+            length += 1
+    
+    else:
+        pass
+
+    return length
+    '''
+    output = ''
+    all_num = []
+    upload = []
+    con = 10 // denominator
+    r = 10 % denominator
+    upload.append(con)
+    upload.append(r)
+    all_num.append(upload)
+    while True:
+        con = r * 10 // denominator
+        r = r * 10 % denominator
+        upload = []
+        upload.append(con)
+        upload.append(r)
+        index1 = 0
+        index2 = 0
+        for x in all_num:
+            if x == upload:
+                for a in all_num:
+                    if index1 == index2:
+                        output += '['
+
+                    output += str(a[0])
+                    index2 += 1
+
+                output += ']'
+                return output.find(']') - output.find('[') - 1
+
+            index1 += 1
+
+        all_num.append(upload)
+    '''
 
 class FactorError(Exception):
     pass
@@ -515,7 +574,6 @@ def find_leylands(n):
         for y in range(2, round(n ** 0.5)):
             if not y in all_x:
                 ans = x ** y + y ** x
-                #ans = fast_pow(x, y) + fast_pow(y, x)
                 if ans < n and ans in primes:
                     leylands.append(ans)
 
@@ -534,7 +592,6 @@ def find_leylands_second_kind(n):
         for y in range(2, round(n ** 0.5)):
             if not y in all_x:
                 ans = x ** y - y ** x
-                #ans = fast_pow(x, y) - fast_pow(y, x)
                 if ans < n and ans in primes:
                     leylands_second_kind.append(ans)
 
@@ -553,6 +610,52 @@ def find_woodalls(n):
             woodalls.append(ans)
 
     return woodalls
+
+def find_uniques(n):
+    '''
+    Return a list that has all unique primes below n.
+    '''
+    _check_num(n)
+    primes = all_primes(n, output = 'list')
+    try:
+        primes.pop(primes.index(2))
+        primes.pop(primes.index(5))
+    
+    except ValueError:
+        pass
+
+    uniques = []
+    for x in primes:
+        length = get_repetend_length(x)
+        cyc = int(cyclotomic(length, 10))
+        ans = cyc // gcd(cyc, length)
+        c = log(ans, x)
+        if int(c) == c:
+            uniques.append(x)
+    
+    return uniques
+from itertools import product, chain, permutations
+def find_friedmans(n):
+    '''
+    Return a list that has all friedman primes below n.
+    '''
+    _check_num(n)
+    primes = all_primes(n)
+    friedmans = []
+    r = {}
+    q = lambda n, h = 1: ['(' + i + c + j + ')' for (i, j), c in product(chain(*[product(*map(q, f)) for f in sum(([(x[:q], x[q:]) for q in range(1, len(x))] for x in map(''.join, permutations(n))), [])]), list('+-*/^') + [''] * h)] if 1 < len(n) else [n] * h
+    for i, j in chain(*[product(q(str(s), 0), [s]) for s in range(125, n + 1)]):
+        try:
+            exec('if eval(%r) == j: r[j]=i' % i.replace('^', '**'))
+
+        except Exception:
+            pass
+
+    for x, i in r.items():
+        if x in primes:
+            friedmans.append(x)
+
+    return friedmans
 
 def factor_siqs(n):
     '''
@@ -3137,6 +3240,8 @@ def test():
         print(f'Leyland Primes: {find_leylands(33000)}\n')
         print(f'Leyland Primes of the second kind: {find_leylands_second_kind(58050)}\n')
         print(f'Woodall Primes: {find_woodalls(400)}\n')
+        print(f'Unique Primes: {find_uniques(105)}\n')
+        print(f'Friedman Primes: {find_friedmans(128)}\n')
         end_tm = time()
         s = '\n' if FACTOR_TEST else ''
         print(f'Prime Test Time: {round(end_tm - start_tm, 12)} seconds.' + s)

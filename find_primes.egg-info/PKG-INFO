@@ -1,7 +1,7 @@
 Metadata-Version: 2.1
 Name: find-primes
-Version: 2.1.6
-Summary: A module for finding primes and finding factors of big numbers.
+Version: 2.1.7
+Summary: A module to find primes and factors of big numbers.
 Home-page: https://github.com/git4robot/pypi_find_primes
 Author: JamesJ
 Author-email: GGJamesQQ@yeah.net
@@ -15,7 +15,7 @@ Requires-Python: >=3.6.0
 Description-Content-Type: text/markdown
 License-File: LICENSE
 
-[![Downloads](https://static.pepy.tech/personalized-badge/find-primes?period=total&units=international_system&left_color=lightgrey&right_color=yellowgreen&left_text=Downloads)](https://pepy.tech/project/find-primes)
+[![Downloads](https://static.pepy.tech/personalized-badge/find-primes?period=total&units=none&left_color=grey&right_color=yellowgreen&left_text=Downloads)](https://pepy.tech/project/find-primes)
 
 Find Primes is a library to find all kinds of primes and factors of big numbers.
 
@@ -279,6 +279,36 @@ Example: Find all leyland primes of a second kind below 58050.
 ```python
 from find_primes import find_leylands_second_kind
 print(find_leylands_second_kind(58050))
+```
+
+**[Woodall Primes](https://en.wikipedia.org/wiki/Woodall_number#Woodall_primes)**
+
+A woodall prime is a woodall number that is a prime.
+
+Example: Find all woodall primes below 400.
+```python
+from find_primes import find_woodalls
+print(find_woodalls(400))
+```
+
+**[Unique Primes](https://en.wikipedia.org/wiki/Unique_prime_number)**
+
+A unique prime is a prime that there is no other prime q such that the period length of the decimal expansion of its reciprocal, 1 / p, is equal to the period length of the reciprocal of q, 1 / q.
+
+Example: Find all unique primes below 105.
+```python
+from find_primes import find_uniques
+print(find_uniques(105))
+```
+
+**[Friedman Primes](https://en.wikipedia.org/wiki/Friedman_number)**
+
+A friedman prime is a friedman number that is a prime.
+
+Example: Find all friedman primes below 128.
+```python
+from find_primes import find_friedmans
+print(find_friedmans(128))
 ```
 
 **[MPQS Method](https://www.rieselprime.de/ziki/Multiple_polynomial_quadratic_sieve)**
