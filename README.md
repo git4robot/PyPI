@@ -13,6 +13,30 @@ Beta Version:
 pip install --pre -U find-primes
 ```
 
+**Find all primes below a number**
+
+Example: Find all primes below 100.
+```python
+from find_primes import all_primes
+print(all_primes(100, 'list'))
+```
+
+**Check if a number is a prime**
+
+Example: Check if 189765 is a prime.
+```python
+from find_primes import is_prime
+print(is_prime(189765))
+```
+
+**Factor a big number**
+
+Example: Factor 2776889953055853600532696901.
+```python
+from find_primes import factor_mpqs
+print(factor_mpqs(2776889953055853600532696901))
+```
+
 **The CLI Tool**
 
 Usage:
@@ -301,7 +325,7 @@ The Multiple Polynomial Quadratic Sieve (MPQS) method is a factorization method.
 Example: Factor a big number.
 ```python
 from find_primes import factor_mpqs
-print(factor_mpqs(2776889953055853600532696901))
+print(factor_mpqs(277688995305593400532696901))
 ```
 
 **[SIQS Method](https://www.rieselprime.de/ziki/Self-initializing_quadratic_sieve)**

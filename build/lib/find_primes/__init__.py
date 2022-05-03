@@ -9,7 +9,8 @@ from random import randint, randrange
 from functools import reduce
 from operator import mul
 from sys import version, version_info
-from argparse import ArgumentParser
+from itertools import product, chain, permutations
+from array import array
 
 DEBUG = False
 VERBOSE = False
@@ -44,6 +45,10 @@ except ImportError:
 
 if VERBOSE: print()
 
+BRUTE_FORCE = 'brute_force'
+MILLER_RABIN = 'miller_rabin'
+AKS = 'aks'
+
 LEFT = 'left'
 RIGHT = 'right'
 BOTH = 'both'
@@ -54,6 +59,9 @@ HEXAGON = 'hexagon'
 HEPTAGON = 'heptagon'
 
 CAN_RUN_TEST = version_info[0] == 3 and version_info[1] >= 6
+
+class FactorError(Exception):
+    pass
 
 def _check_num(n):
     '''
@@ -80,22 +88,130 @@ def _check_factors(ans, n, retry = 1, max_retries = 3):
 
     return retry + 1
 
-def is_prime(n):
+def multi(a, b, n, r):
+    '''
+    Internal function.
+    '''
+    x = array('d', [])
+    for i in range(len(a) + len(b) - 1):
+        x.append(0)
+
+    for i in range(len(a)):
+        for j in range(len(b)):
+            x[(i + j) % r] += a[i] * b[j] 
+            x[(i + j) % r] %= n
+
+    for i in range(r, len(x)):
+        x = x[:-1]
+
+    return x
+
+def is_prime(n, method = MILLER_RABIN):
     '''
     If n is prime, return True.
+    Arguments:
+    method ----- The method to check if n is prime. Choises: AKS (not implemented yet), MILLER_RABIN, BRUTE_FORCE
     '''
     _check_num(n)
     if n in [2, 3, 5, 7]:
         return True
-
-    if not (n % 10 % 2) or n % 10 not in [1, 3, 7, 9] or n == 1 or not isinstance(n, int):
+    
+    if n % 10 % 2 == 0 or n % 10 not in [1, 3, 7, 9] or n <= 1 or not isinstance(n, int):
         return False
 
-    for i in range(2, int(n ** 0.5 + 1)):
-        if n % i == 0:
-            return False
+    if method == BRUTE_FORCE:
+        for i in range(2, int(n ** 0.5 + 1)):
+            if n % i == 0:
+                return False
+        
+        return True
+    
+    elif method == AKS:
+        raise NotImplementedError('This method is not implemented yet.')
+        '''
+        #Step 1
+        for i in range(2, int(sqrt(n)) + 1) :
+            val = log(n) / log(i)
+            if int(val) == val:
+                return False
+        
+        #Step 2
+        max_k = log2(n) ** 2     
+        next_r = True              
+        r = 1                   
+        while next_r == True:
+            r += 1
+            next_r = False
+            k = 0
+            while k <= max_k and next_r == False:
+                k += 1
+                if pow(n, k, r) in [0, 1]:
+                    next_r = True
 
-    return True
+        #Step 3
+        for a in range(2, min(r, n)):
+            if gcd(a, n) > 1:
+                return False
+        
+        #Step 4
+        if n <= r:
+            return True
+        
+        #Step 5
+        x = array('l', [])
+        euler_phi = lambda r: len([x for x in range(1, r + 1) if gcd(r, i) == 1])
+        for a in range(1, floor(sqrt(euler_phi(r)) * log2(n))):
+            base = array('l', [a, 1])
+            x = array('d', [])
+            a = base[0]
+            for i in range(len(base)):
+                x.append(0)
+
+            x[0] = 1
+            power = n
+            while power > 0:
+                if power % 2 == 1:
+                    x = multi(x, base, n, r)
+
+                base = multi(base, base, n, r)
+                power //= 2
+
+            x[(0)] = x[(0)] - a
+            x[n % r] = x[n % r] - 1
+            if any(x):
+                return False
+
+        #Step 6
+        return True
+        '''
+    
+    elif method == MILLER_RABIN:
+        oddPartOfNumber = n - 1
+        timesTwoDividNumber = 0
+        while oddPartOfNumber % 2 == 0:
+            oddPartOfNumber //= 2
+            timesTwoDividNumber += 1
+
+        for t in range(3):
+            while True:
+                randomNumber = randint(2, n) - 1
+                if randomNumber not in [0, 1]:
+                    break
+
+            randomNumberWithPower = pow(randomNumber, oddPartOfNumber, n)
+            if randomNumberWithPower not in [1, n - 1]:
+                iterationNumber = 1
+                while iterationNumber <= timesTwoDividNumber - 1 and randomNumberWithPower != n - 1:
+                    randomNumberWithPower = pow(randomNumberWithPower, 2, n)
+                    iterationNumber += 1
+
+                if (randomNumberWithPower != n - 1):
+                    return False
+
+        return True
+        
+    else:
+        return False
 
 def all_primes(n, output = 'array'):
     '''
@@ -139,42 +255,6 @@ def get_repetend_length(denominator):
         pass
 
     return length
-    '''
-    output = ''
-    all_num = []
-    upload = []
-    con = 10 // denominator
-    r = 10 % denominator
-    upload.append(con)
-    upload.append(r)
-    all_num.append(upload)
-    while True:
-        con = r * 10 // denominator
-        r = r * 10 % denominator
-        upload = []
-        upload.append(con)
-        upload.append(r)
-        index1 = 0
-        index2 = 0
-        for x in all_num:
-            if x == upload:
-                for a in all_num:
-                    if index1 == index2:
-                        output += '['
-
-                    output += str(a[0])
-                    index2 += 1
-
-                output += ']'
-                return output.find(']') - output.find('[') - 1
-
-            index1 += 1
-
-        all_num.append(upload)
-    '''
-
-class FactorError(Exception):
-    pass
 
 def find_twins(n):
     '''
@@ -456,35 +536,26 @@ def find_center_polygons(n, type):
     _check_num(n)
     primes = all_primes(n)
     center_polygon_primes = []
+    result = 0
     if type == 'triangle':
-        for i in range(1, n):
-            result = (3 * (i ** 2) + 3 * i + 2) / 2
-            if result in primes:
-                center_polygon_primes.append(int(result))
+        result = '(3 * (i ** 2) + 3 * i + 2) // 2'
     
     elif type == 'square':
-        for i in range(1, n):
-            result = (i ** 2) + (i - 1) ** 2
-            if result in primes:
-                center_polygon_primes.append(int(result))
+        result = '(i ** 2) + (i - 1) ** 2'
 
     elif type == 'pentagon':
-        for i in range(1, n):
-            result = (5 * ((i - 1) ** 2) + 5 * (i - 1) + 2) / 2
-            if result in primes:
-                center_polygon_primes.append(int(result))
+        result = '(5 * ((i - 1) ** 2) + 5 * (i - 1) + 2) // 2'
     
     elif type == 'hexagon':
-        for i in range(1, n):
-            result = 1 + 3 * i * (i - 1)
-            if result in primes:
-                center_polygon_primes.append(int(result))
+        result = '1 + 3 * i * (i - 1)'
     
     elif type == 'heptagon':
-        for i in range(1, n):
-            result = (7 * ((i - 1) ** 2) + 7 * (i - 1) + 2) / 2
-            if result in primes:
-                center_polygon_primes.append(int(result))
+        result = '(7 * ((i - 1) ** 2) + 7 * (i - 1) + 2) // 2'
+
+    for i in range(1, n):
+        value = eval(result.replace('i', str(i)), {})
+        if value in primes:
+            center_polygon_primes.append(value)
 
     return center_polygon_primes
 
@@ -634,7 +705,7 @@ def find_uniques(n):
             uniques.append(x)
     
     return uniques
-from itertools import product, chain, permutations
+
 def find_friedmans(n):
     '''
     Return a list that has all friedman primes below n.
@@ -2156,7 +2227,8 @@ def factor_mpqs(n):
 
                 x = x_new
 
-    class QS(object):
+    '''
+    class QS():
         def __init__(self, n, sieverange, factorbase):
             self.number = n
             self.sqrt_n = int(sqrt(n))
@@ -2324,6 +2396,7 @@ def factor_mpqs(n):
 
             self.smooth = smooth
             return smooth
+    '''
 
     class MPQS(object):
         def __init__(self, n, sieverange = 0, factorbase = 0, multiplier = 0):
@@ -2683,6 +2756,7 @@ def factor_mpqs(n):
 
             return zero_vector
 
+    '''
     def qs(n, s, f):
         Q = QS(n, s, f)
         Q.run_sieve()
@@ -2709,6 +2783,7 @@ def factor_mpqs(n):
                     N_factors.append(factor)
 
         N_factors.sort()
+    '''
 
     def mpqs(n, s = 0, f = 0, m = 0):
         M = MPQS(n, s, f, m)
@@ -2968,7 +3043,7 @@ def factor_lenstra(n):
 
         if P2.z == 0:
             return P1
-        
+
         X1 = P1.x
         Y1 = P1.y
         Z1 = P1.z
@@ -3099,7 +3174,7 @@ def factor_lenstra(n):
             return factors
             
         return factor(n, retry = checked)
-    
+
     return factor(n)
 
 def factor_pollardpm1(n, retry = 1):
@@ -3212,6 +3287,10 @@ def test():
     '''A test of this module.'''
     if PRIME_TEST:
         start_tm = time()
+        n = randint(1, 10000)
+        print(f'Is {n} a prime? {is_prime(n)}\n')
+        print(f'Factors of {n}: {factor_pollardpm1(n)}\n')
+        print(f'All primes: {find_twins(100)}\n')
         print(f'Twin primes: {find_twins(500)}\n')
         print(f'Palindome primes: {find_palindromes(1000)}\n')
         print(f'Palindome primes which was in base 2: {find_palindromes_base_2(8200)}\n')
