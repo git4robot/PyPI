@@ -281,7 +281,7 @@ def find_palindromes(n):
     palin_primes = []
     for ix, xp in enumerate(primes):
         palin_num = int(str(xp)[::-1])
-        if is_prime(palin_num) and palin_num == xp and xp > 10:
+        if is_prime(palin_num) and palin_num == xp:
             palin_primes.append(palin_num)
 
     return palin_primes
@@ -310,7 +310,7 @@ def find_reverses(n):
     reverse_primes = {}
     for ix, xp in enumerate(primes):
         reverse_num = int(str(xp)[::-1])
-        if is_prime(reverse_num) and xp > 10:
+        if is_prime(reverse_num):
             reverse_primes[xp] = reverse_num
 
     palin_primes = find_palindromes(n)

@@ -7,11 +7,11 @@ with open(path.join(this_directory, 'README.md'), encoding = 'utf-8') as f:
 
 setup(
     name = 'find_primes',
-    version = '2.2.0',
+    version = '2.2.0.post1',
     author = 'JamesJ',
     author_email = 'GGJamesQQ@yeah.net',
     description = 'A module to find primes and factors of big numbers.',
-    install_requires = ['numpy', 'rsa', 'mpmath'],
+    install_requires = ['numpy', 'rsa', 'mpmath', 'requests'],
     python_requires = '>=3.6.0',
     classifiers = [
         'Programming Language :: Python',
